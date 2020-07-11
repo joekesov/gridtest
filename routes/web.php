@@ -16,3 +16,8 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
+
+
+Route::group(['namespace' => 'Frontend'], function () {
+    require_once(realpath(app_path('Http/Frontend/Dashboard/resources/routes.php')));
+});
