@@ -1,0 +1,21 @@
+.container {
+    display: flex;
+    flex-wrap: wrap;
+    /*border: 1px solid #636b6f;*/
+}
+
+.item {
+    /*border: 1px solid #636b6f;*/
+    /*flex-grow: 1;*/
+    /*width: 33%;*/
+    flex: 1 1 30%; /*grow | shrink | basis */
+    /*height: 100px;*/
+
+}
+
+.element {
+    border: 1px solid #636b6f;
+    margin: 10px;
+    padding: 10px;
+}
+

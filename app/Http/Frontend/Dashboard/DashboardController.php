@@ -11,6 +11,6 @@ class DashboardController extends Controller
     // TODO:
     public function index(Request $request)
     {
-        
+        return view('Frontend/Dashboard::dashboard');
     }
 }
