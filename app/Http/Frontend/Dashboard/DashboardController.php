@@ -53,4 +53,26 @@ class DashboardController extends Controller
         return redirect(route('dashboard', []))
             ->with('status', $message);
     }
+
+    public function deleteForm(Request $request, int $id)
+    {
+        $model = $this->service->getById($id);
+
+        $view = 'Frontend/Dashboard::pages.delete';
+        if ($request->ajax()) {
+            $view = '';
+        }
+
+        return view($view, compact('model'));
+    }
+
+    public function delete(Request $request, int $id)
+    {
+        $this->service->delete($id);
+
+        $message = 'Deleted';
+
+        return redirect(route('dashboard', []))
+            ->with('status', $message);
+    }
 }

@@ -52,4 +52,9 @@ abstract class AbstractModelService
         return $this->repository
             ->all();
     }
+
+    public function delete($nId)
+    {
+        return $this->repository->delete($nId);
+    }
 }

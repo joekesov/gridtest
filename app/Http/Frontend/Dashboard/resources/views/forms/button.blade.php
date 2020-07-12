@@ -1,5 +1,5 @@
 
-<form action="{{ route('button_edit', ['id' => $model->id]) }}" method="POST">
+<form action="{{ $actionUrl }}" method="POST">
     @method('POST')
     @csrf
 

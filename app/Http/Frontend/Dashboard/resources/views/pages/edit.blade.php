@@ -1,5 +1,6 @@
 <?php
 $pageTitle = 'Edit button';
+$actionUrl = route('button_edit', ['id' => $model->id]);
 ?>
 
 @extends('layouts.main')

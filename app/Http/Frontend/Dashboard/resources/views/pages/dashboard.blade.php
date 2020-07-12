@@ -11,11 +11,11 @@ $pageTitle = 'Dashboard';
                 <div class="element">
                     <div class="container">
                         <a href="{{ route('button_edit', ['id' => $button->id]) }}" class="btn"><i class="fa fa-edit"></i> Edit</a>
-                        <button class="btn"><i class="fa fa-trash"></i> Delete</button>
+                        <a href="{{ route('button_delete', ['id' => $button->id]) }}" class="btn"><i class="fa fa-trash"></i> Delete</a>
                     </div>
 
                     <div class="element">
-                        <button class="btn"><i class="fa fa-home"></i> {{ $button->title }}</button>
+                        <button class="btn" onclick="location.href='{{ $button->link }}';" style="background-color: {{ sprintf('#%s', $button->color->hex_code) }};"><i class="fa fa-home"></i> {{ $button->title }}</button>
                     </div>
                 </div>
             </div>
