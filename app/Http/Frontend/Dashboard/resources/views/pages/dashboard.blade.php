@@ -1,4 +1,6 @@
 <?php
+use App\Domain\Button\Enum\ButtonEnum;
+
 $pageTitle = 'Dashboard';
 ?>
 
@@ -21,14 +23,16 @@ $pageTitle = 'Dashboard';
             </div>
         @endforeach
 
-        <div class="item">
-            <div class="element">
+    @if (ButtonEnum::MAX_ALLOWED_BUTTONS > count($buttons))
+    <div class="item">
+        <div class="element">
 
-                <div class="element">
-                    <button class="btn"><i class="fa fa-plus"></i> Add button</button>
-                </div>
+            <div class="element">
+                <a href="{{ route('button_add') }}" class="btn"><i class="fa fa-plus"></i> Add button</a>
             </div>
         </div>
-
     </div>
+    @endif
+
+</div>
 @endsection

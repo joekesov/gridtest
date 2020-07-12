@@ -57,4 +57,9 @@ abstract class AbstractModelService
     {
         return $this->repository->delete($nId);
     }
+
+    public function create(array $arData)
+    {
+        return $this->repository->create($arData);
+    }
 }

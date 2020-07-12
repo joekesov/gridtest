@@ -4,6 +4,12 @@ Route::group(['namespace' => 'Dashboard'], function () {
     Route::get('/', 'DashboardController@index')
         ->name('dashboard');
 
+    Route::get('/button/add', 'DashboardController@addForm')
+        ->name('button_add');
+
+    Route::post('/button/add', 'DashboardController@add')
+        ->name('button_add');
+
     Route::get('/button/edit/{id}', 'DashboardController@editForm')
         ->where(['id' => '[0-9]+'])
         ->name('button_edit');

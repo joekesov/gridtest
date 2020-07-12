@@ -7,7 +7,9 @@ use App\Application\UserInterface\Controller;
 use Illuminate\Http\Request;
 use App\Domain\Button\Service\ButtonService;
 use App\Http\Frontend\Dashboard\Request\ButtonRequest;
+use App\Http\Frontend\Dashboard\Request\AddButtonRequest;
 use App\Domain\Color\Service\ColorService;
+
 
 class DashboardController extends Controller
 {
@@ -26,6 +28,30 @@ class DashboardController extends Controller
         $buttons = $this->service->getAll();
 
         return view('Frontend/Dashboard::pages.dashboard', compact('buttons'));
+    }
+
+    public function addForm(Request $request)
+    {
+        $model = null;
+        $colorsCollection = $this->colorService->getAll();
+
+        $view = 'Frontend/Dashboard::pages.add';
+        if ($request->ajax()) {
+            $view = '';
+        }
+
+        return view($view, compact('model','colorsCollection'));
+    }
+
+    public function add(AddButtonRequest $request)
+    {
+        $parameters = $request->except(['_method', '_token']);
+        $model = $this->service->create($parameters);
+
+        $message = 'A button has been successfully added!';
+
+        return redirect(route('dashboard', []))
+            ->with('status', $message);
     }
 
     public function editForm(Request $request, int $id)
@@ -48,7 +74,7 @@ class DashboardController extends Controller
 
         $model = $this->service->update($id, $parameters);
 
-        $message = 'Uspeh';
+        $message = 'Button has been successfully edited!';
 
         return redirect(route('dashboard', []))
             ->with('status', $message);

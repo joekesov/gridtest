@@ -15,8 +15,15 @@ class ButtonRequest extends FormRequest
     public function rules()
     {
         $rules = array(
-            'title' => 'required|max:255',
-            'link' => 'required|active_url',
+            'title' => [
+                'required',
+                'max:255',
+            ],
+            'link' => [
+                'required',
+                'max:255',
+                'active_url'
+            ],
             'color_id' => 'required',
         );
 
