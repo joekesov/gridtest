@@ -41,6 +41,12 @@ abstract class AbstractModelService
         return $this->repository = $repository;
     }
 
+    public function getById($nId)
+    {
+        return $this->repository
+            ->find($nId);
+    }
+
     public function getAll()
     {
         return $this->repository

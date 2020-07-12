@@ -12,4 +12,12 @@ class ButtonService extends AbstractModelService
     {
         return ButtonRepositoryInterface::class;
     }
+
+    public function update(int $id, array $parameters)
+    {
+        $model = $this->getById($id);
+        $model->update($parameters);
+
+        return $model;
+    }
 }

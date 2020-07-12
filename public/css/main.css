@@ -1,7 +1,14 @@
 .container {
     display: flex;
     flex-wrap: wrap;
+    /*justify-content: center;*/
     /*border: 1px solid #636b6f;*/
+}
+
+.columnContainer {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
 }
 
 .item {
@@ -10,7 +17,7 @@
     /*width: 33%;*/
     flex: 1 1 30%; /*grow | shrink | basis */
     /*height: 100px;*/
-
+    max-width: 30%;
 }
 
 .element {
