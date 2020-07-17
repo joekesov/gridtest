@@ -47,6 +47,7 @@ class InvoiceCurrencyCalculator extends Command
         $this->info('Preparing...');
 
         $this->info('Get params...');
+
         $pathToFile = $this->argument('path_to_file');
         $currenciesAndRates = $this->argument('currencies_and_rates');
         $outputCurrency = $this->argument('output_currency');
@@ -67,18 +68,16 @@ class InvoiceCurrencyCalculator extends Command
             $this->service->setOutputCurrency($outputCurrency);
             $customers = $this->service->getTotals($vatNumber);
 
+            foreach ($customers as $customer) {
+                $customerName = $customer['customer']->name;
+                $total = number_format($customer['total'], 2, '.', '');
+
+                $this->line(sprintf('Customer %s - %s %s', $customerName, $total, $outputCurrency));
+            }
+
         } catch (AbstractDocumentCalculatorException $e) {
-            $this->error($e->getMessage());
+            $this->error(sprintf('Error: %s', $e->getMessage()));
         }
 
-
-        foreach ($customers as $customer) {
-            $customerName = $customer['customer']->name;
-            $total = number_format($customer['total'], 2, '.', '');
-
-            $this->line(sprintf('Customer %s - %s %s', $customerName, $total, $outputCurrency));
-        }
-
-        return 0;
     }
 }

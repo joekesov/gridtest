@@ -21,7 +21,6 @@ class InvoiceCalculatorService
     private $filePath = null;
     private $currencies = [];
     private $outputCurrency = null;
-    private $defaultCurrency = null;
 
     public function setFilePath(string $filePath)
     {
@@ -37,11 +36,16 @@ class InvoiceCalculatorService
 
     public function setCurrencies(array $currencies)
     {
+        $hasDefaultCurrency = false;
         foreach ($currencies as $currency) {
             $this->currencies[$currency->code] = $currency;
             if (1 == $currency->rate) {
-                $this->defaultCurrency = $currency->code;
+                $hasDefaultCurrency = true;
             }
+        }
+
+        if (!$hasDefaultCurrency) {
+            throw new DocumentCurrencyException('There is no default currency.');
         }
 
         return $this;
@@ -57,10 +61,40 @@ class InvoiceCalculatorService
     public function getTotals(string $vat = null) :array
     {
         $this->validate();
+        $customers = $this->getData($vat);
+        $customers = $this->processData($customers);
 
+        return $customers;
+    }
 
+    private function validate(): bool
+    {
+        if (count($this->currencies) == 0) {
+            throw new DocumentCurrencyException('There are no currencies with rate');
+        }
+
+        $isCorrectOutputCurrency = false;
+        foreach($this->currencies as $currency) {
+            if (empty($this->outputCurrency) && 1 === $currency->rate) {
+                $this->outputCurrency = $currency->code;
+            }
+
+            if ($currency->code === $this->outputCurrency) {
+                $isCorrectOutputCurrency = true;
+            }
+        }
+
+        if (!$isCorrectOutputCurrency) {
+            throw new DocumentCurrencyException(sprintf('Unsupported output currency (%s)!', $this->outputCurrency));
+        }
+
+        return true;
+    }
+
+    private function getData(string $vat = null): array
+    {
+        $customers = [];
         if (($handle = fopen($this->filePath, "r")) !== false) {
-            $customers = [];
             $documentColumns = [];
             $row = 0;
             while (($data = fgetcsv($handle, 1000, ",")) !== false) {
@@ -136,88 +170,67 @@ class InvoiceCalculatorService
 
             }
             fclose($handle);
-
-
-
-            $outputCurrency = $this->getOutputCurrency();
-
-            foreach ($customers as $vatNumber => $customer) {
-                $total = 0;
-
-                foreach ($customer['documents'] as $documentNumber => $invoice) {
-                    if (!array_key_exists('invoice', $invoice)) {
-                        throw new DocumentException(sprintf('Invoice with number %s does not exist!', $documentNumber));
-                    }
-
-
-                    $this->currencyExists($invoice['invoice']->currency);
-                    $currency = $this->currencies[$invoice['invoice']->currency];
-
-
-                    $invoiceSum = $invoice['invoice']->total * $currency->rate;
-                    $creditNotesSum = 0;
-                    $debitNotesSum = 0;
-
-                    if (array_key_exists('credit_notes', $invoice)) {
-                        foreach ($invoice['credit_notes'] as $creditNote) {
-                            $this->currencyExists($creditNote->currency);
-                            $currency = $this->currencies[$creditNote->currency];
-                            $creditNotesSum += $creditNote->total * $currency->rate;
-                        }
-                    }
-
-                    if (array_key_exists('debit_notes', $invoice)) {
-                        foreach ($invoice['debit_notes'] as $debitNote) {
-                            $this->currencyExists($debitNote->currency);
-                            $currency = $this->currencies[$debitNote->currency];
-                            $debitNotesSum += $debitNote->total * $currency->rate;
-                        }
-                    }
-
-                    if ($invoiceSum < $creditNotesSum) {
-                        throw new DocumentException(sprintf('the total of all the credit notes (%f) is bigger than the sum of the invoice (%f)', $creditNotesSum, $invoiceSum));
-                    }
-
-                    $total += $invoiceSum + $debitNotesSum - $creditNotesSum;
-                }
-
-                $customer['total'] = $total / $outputCurrency->rate;
-
-                $customers[$vatNumber] = $customer;
-            }
         }
 
         return $customers;
     }
 
-    private function validate()
+    private function processData(array $customers): array
     {
-        if (count($this->currencies) == 0) {
-            throw new DocumentCurrencyException('There are no currencies with rate');
-        }
+        $outputCurrency = $this->getOutputCurrency();
 
-        $isCorrectOutputCurrency = false;
-        foreach($this->currencies as $currency) {
-            if (empty($this->outputCurrency) && 1 === $currency->rate) {
-                $this->outputCurrency = $currency->code;
+        foreach ($customers as $vatNumber => $customer) {
+            $total = 0;
+
+            foreach ($customer['documents'] as $documentNumber => $invoice) {
+                if (!array_key_exists('invoice', $invoice)) {
+                    throw new DocumentException(sprintf('Invoice with number %s does not exist!', $documentNumber));
+                }
+
+
+                $this->currencyExists($invoice['invoice']->currency);
+                $currency = $this->currencies[$invoice['invoice']->currency];
+
+
+                $invoiceSum = $invoice['invoice']->total * $currency->rate;
+                $creditNotesSum = 0;
+                $debitNotesSum = 0;
+
+                if (array_key_exists('credit_notes', $invoice)) {
+                    foreach ($invoice['credit_notes'] as $creditNote) {
+                        $this->currencyExists($creditNote->currency);
+                        $currency = $this->currencies[$creditNote->currency];
+                        $creditNotesSum += $creditNote->total * $currency->rate;
+                    }
+                }
+
+                if (array_key_exists('debit_notes', $invoice)) {
+                    foreach ($invoice['debit_notes'] as $debitNote) {
+                        $this->currencyExists($debitNote->currency);
+                        $currency = $this->currencies[$debitNote->currency];
+                        $debitNotesSum += $debitNote->total * $currency->rate;
+                    }
+                }
+
+                if ($invoiceSum < $creditNotesSum) {
+                    throw new DocumentException(sprintf('the total of all the credit notes (%f) is bigger than the sum of the invoice (%f)', $creditNotesSum, $invoiceSum));
+                }
+
+                $total += $invoiceSum + $debitNotesSum - $creditNotesSum;
             }
 
-            if ($currency->code === $this->outputCurrency) {
-                $isCorrectOutputCurrency = true;
-            }
+            $customer['total'] = $total / $outputCurrency->rate;
+
+            $customers[$vatNumber] = $customer;
         }
 
-        if (!$isCorrectOutputCurrency) {
-            throw new DocumentCurrencyException('There is no output currency');
-        }
-
-        return true;
+        return $customers;
     }
 
     private function currencyExists($currencyCode)
     {
         if (!array_key_exists($currencyCode, $this->currencies)) {
-            throw new DocumentCurrencyException('There is an unsupported currency in the file: %s!', $currencyCode);
+            throw new DocumentCurrencyException(sprintf('There is an unsupported currency in the file: %s!', $currencyCode));
         }
     }
 
